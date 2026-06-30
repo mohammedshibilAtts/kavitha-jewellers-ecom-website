@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Montserrat", var(--font-montserrat), sans-serif;
+  --font-sans: var(--font-montserrat), sans-serif;
+  --font-serif: var(--font-montserrat), sans-serif;
   --color-primary: #632C2F;
   --color-bg-custom: #FFFCF5;
   --color-title: #632C2F;
@@ -10,7 +11,7 @@
 }
 
 body {
-  background-color: var(--color-bg-custom);
+  font-family: var(--font-montserrat), sans-serif;
   color: var(--color-normal);
 }
 

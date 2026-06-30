@@ -34,7 +34,7 @@ export default function Home() {
   }));
 
   return (
-    <div className="w-full flex flex-col bg-bg-custom pb-16 relative">
+    <div className="w-full flex flex-col  pb-16 relative">
 
       {/* 1. Hero Banner */}
       <section className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[400px] overflow-hidden">
@@ -56,7 +56,7 @@ export default function Home() {
               <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-primary">
                 TIMELESS BEAUTY,
               </span>
-              <h1 className="font-serif text-3xl md:text-6xl font-bold tracking-wide text-title leading-none">
+              <h1 className="font-sans text-3xl md:text-6xl font-bold tracking-wide text-title leading-none">
                 MADE FOR YOU
               </h1>
 
@@ -114,7 +114,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 w-full flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-1 mx-auto text-center">
-            <h2 className="font-serif text-xl md:text-2xl font-bold text-title">Shop By Category</h2>
+            <h2 className="font-sans text-xl md:text-2xl font-bold text-title">Shop By Category</h2>
             <p className="text-[11px] text-subtitle italic">Crafting elegance that transcends generations</p>
           </div>
           {/* Arrows */}
@@ -151,7 +151,7 @@ export default function Home() {
       {/* 3. Latest Arrivals */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 w-full flex flex-col gap-6">
         <div className="flex flex-col gap-1 mx-auto text-center">
-          <h2 className="font-serif text-xl md:text-2xl font-bold text-title">Latest Arrivals</h2>
+          <h2 className="font-sans text-xl md:text-2xl font-bold text-title">Latest Arrivals</h2>
           <p className="text-[11px] text-subtitle italic">Crafting elegance that transcends generations</p>
         </div>
 
@@ -196,7 +196,7 @@ export default function Home() {
 
         {/* View All Button */}
         <div className="mx-auto mt-6">
-          <Link href="/all" className="font-serif text-xs font-bold text-title hover:text-primary border-b border-title hover:border-primary pb-1 uppercase tracking-wider transition-colors">
+          <Link href="/all" className="font-sans text-xs font-bold text-title hover:text-primary border-b border-title hover:border-primary pb-1 uppercase tracking-wider transition-colors">
             VIEW ALL
           </Link>
         </div>
@@ -206,7 +206,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 w-full flex flex-col gap-6 relative">
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-1 mx-auto text-center">
-            <h2 className="font-serif text-xl md:text-2xl font-bold text-title">Our Bestselling items</h2>
+            <h2 className="font-sans text-xl md:text-2xl font-bold text-title">Our Bestselling items</h2>
             <p className="text-[11px] text-subtitle italic">Crafting elegance that transcends generations</p>
           </div>
           {/* Arrows */}
@@ -263,7 +263,7 @@ export default function Home() {
       {/* 5. Join Our Schemes */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 w-full flex flex-col gap-6">
         <div className="text-center">
-          <h2 className="font-serif text-xl md:text-2xl font-bold text-title">Join Our Schemes</h2>
+          <h2 className="font-sans text-xl md:text-2xl font-bold text-title">Join Our Schemes</h2>
         </div>
 
         {/* Banner Frame */}
@@ -285,7 +285,7 @@ export default function Home() {
               <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-amber-200">
                 • GRACE IN •
               </span>
-              <h3 className="font-serif text-xl md:text-4xl font-extrabold tracking-wide text-white leading-tight">
+              <h3 className="font-sans text-xl md:text-4xl font-extrabold tracking-wide text-white leading-tight">
                 EVERY DETAIL
               </h3>
               <p className="text-[10px] md:text-xs text-gray-200 max-w-xs mt-1">
