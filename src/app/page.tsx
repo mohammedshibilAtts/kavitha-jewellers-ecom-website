@@ -34,7 +34,7 @@ export default function Home() {
   }));
 
   return (
-    <div className="w-full flex flex-col bg-bg-custom pb-16 relative">
+    <div className="w-full flex flex-col  pb-16 relative">
 
       {/* 1. Hero Banner */}
       <section className="relative w-full aspect-[21/9] min-h-[300px] md:min-h-[400px] overflow-hidden">

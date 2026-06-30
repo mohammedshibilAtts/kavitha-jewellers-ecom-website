@@ -3,16 +3,44 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Compass } from "lucide-react";
+import { Compass, Phone, MessageSquare } from "lucide-react";
+import { ENV } from "@/config/env";
+
+// Link Arrays for Dynamic Mapping
+const QUICK_LINKS = [
+  { name: "Account", href: "/account" },
+  { name: "Wishlist", href: "/wishlist" },
+  { name: "My Cart", href: "/cart" },
+  { name: "My Orders", href: "/orders" },
+  { name: "My Schemes", href: "/schemes" },
+];
+
+const CATEGORIES = [
+  { name: "Rings", href: "/rings" },
+  { name: "Earrings", href: "/earrings" },
+  { name: "Bangles & Bracelets", href: "/bangles-bracelets" },
+  { name: "Solitaire", href: "/solitaire" },
+  { name: "Necklaces & Pendants", href: "/necklaces-pendants" },
+  { name: "Gold Jewellery", href: "/gold" },
+  { name: "Silver Jewellery", href: "/silver" },
+  { name: "Gifts", href: "/gift" },
+];
+
+const SOCIAL_LINKS = [
+  { name: "Instagram", href: "https://instagram.com" },
+  { name: "Facebook", href: "https://facebook.com" },
+  { name: "WhatsApp", href: "https://whatsapp.com" },
+  { name: "Youtube", href: "https://youtube.com" },
+];
 
 export default function Footer() {
   return (
     <footer className="w-full bg-primary text-white mt-auto border-t border-white/10 select-none">
       {/* Main Grid */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12">
 
         {/* Column 1: Brand Info */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 col-span-2 md:col-span-1">
           <div className="flex items-center">
             {/* Logo Image */}
             <Image
@@ -40,52 +68,91 @@ export default function Footer() {
         </div>
 
         {/* Column 2: Quick Links */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 col-span-1">
           <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
             Quick Links
           </h4>
-          <ul className="flex flex-col gap-3 text-white/90 text-[11px] font-medium tracking-[0.5px] uppercase">
-            <li><Link href="/account" className="hover:text-[#E6C280] transition-colors duration-200">Account</Link></li>
-            <li><Link href="/wishlist" className="hover:text-[#E6C280] transition-colors duration-200">Wishlist</Link></li>
-            <li><Link href="/cart" className="hover:text-[#E6C280] transition-colors duration-200">My Cart</Link></li>
-            <li><Link href="/orders" className="hover:text-[#E6C280] transition-colors duration-200">My Orders</Link></li>
-            <li><Link href="/schemes" className="hover:text-[#E6C280] transition-colors duration-200">My Schemes</Link></li>
+          <ul className="flex flex-col gap-3 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
+            {QUICK_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="hover:text-[#E6C280] transition-colors duration-200">
+                  {link.name}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Column 3: Category */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 col-span-1">
           <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
             Categories
           </h4>
-          <ul className="flex flex-col gap-3 text-white/90 text-[11px] font-medium tracking-[0.5px] uppercase">
-            <li><Link href="/rings" className="hover:text-[#E6C280] transition-colors duration-200">Rings</Link></li>
-            <li><Link href="/earrings" className="hover:text-[#E6C280] transition-colors duration-200">Earrings</Link></li>
-            <li><Link href="/bangles-bracelets" className="hover:text-[#E6C280] transition-colors duration-200">Bangles & Bracelets</Link></li>
-            <li><Link href="/solitaire" className="hover:text-[#E6C280] transition-colors duration-200">Solitaire</Link></li>
-            <li><Link href="/necklaces-pendants" className="hover:text-[#E6C280] transition-colors duration-200">Necklaces & Pendants</Link></li>
-            <li><Link href="/gold" className="hover:text-[#E6C280] transition-colors duration-200">Gold Jewellery</Link></li>
-            <li><Link href="/silver" className="hover:text-[#E6C280] transition-colors duration-200">Silver Jewellery</Link></li>
-            <li><Link href="/gift" className="hover:text-[#E6C280] transition-colors duration-200">Gifts</Link></li>
+          <ul className="flex flex-col gap-3 text-white  text-[11px] font-medium tracking-[0.5px] uppercase">
+            {CATEGORIES.map((category) => (
+              <li key={category.href}>
+                <Link href={category.href} className="hover:text-[#E6C280] transition-colors duration-200">
+                  {category.name}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
-        {/* Column 4: Social */}
-        <div className="flex flex-col gap-5">
-          <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
-            Social Media
-          </h4>
-          <ul className="flex flex-col gap-3 text-white/90 text-[11px] font-medium tracking-[0.5px] uppercase">
-            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6C280] transition-colors duration-200">Instagram</a></li>
-            <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6C280] transition-colors duration-200">Facebook</a></li>
-            <li><a href="https://whatsapp.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6C280] transition-colors duration-200">WhatsApp</a></li>
-            <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6C280] transition-colors duration-200">Twitter</a></li>
-            <li><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6C280] transition-colors duration-200">Youtube</a></li>
-          </ul>
+        {/* Column 4: Social & Contact */}
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-6 col-span-2 md:col-span-1">
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px] mb-3">
+              Social Media
+            </h4>
+            <ul className="flex flex-col gap-3 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
+              {SOCIAL_LINKS.map((social) => (
+                <li key={social.href}>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#E6C280] transition-colors duration-200"
+                  >
+                    {social.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px] mb-3">
+              Contact Us
+            </h4>
+            <ul className="flex flex-col gap-2.5 text-white text-[11px] font-medium tracking-[0.5px]">
+              <li>
+                <a href="tel:+919876543210" className="hover:text-[#E6C280] transition-colors duration-200 flex items-center gap-1.5">
+                  <Phone size={12} className="text-[#E6C280]" />
+                  <span>+91 98765 43210</span>
+                </a>
+              </li>
+              <li>
+                <a href="tel:+919876432102" className="hover:text-[#E6C280] transition-colors duration-200 flex items-center gap-1.5">
+                  <Phone size={12} className="text-[#E6C280]" />
+                  <span>+91 98764 32102</span>
+                </a>
+              </li>
+              <li>
+                <a href="tel:+919876432102" className="hover:text-[#E6C280] transition-colors duration-200 flex items-center gap-1.5">
+                  <Phone size={12} className="text-[#E6C280]" />
+                  <span>+91 98764 32102</span>
+                </a>
+              </li>
+            
+              
+
+            </ul>
+          </div>
         </div>
 
         {/* Column 5: App Promo & Contact */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 col-span-2 md:col-span-1">
           <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
             DigiGold Schemes
           </h4>
@@ -94,37 +161,40 @@ export default function Footer() {
           </p>
 
           {/* Download Badges */}
-          <div className="flex flex-col gap-2.5 sm:flex-row lg:flex-col xl:flex-row mt-1">
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-2 max-w-[270px] md:max-w-[130px] mt-1">
             {/* Google Play Store Badge */}
-            <a href="https://play.google.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 bg-black/20 border border-white/10 hover:border-white/20 hover:bg-black/30 rounded px-2.5 py-1.5 transition-all text-white w-32 shadow-sm">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-white shrink-0">
-                <path d="M5.25 3v18c0 .35.15.68.41.9l9.34-9.33L5.66 3.22a1.23 1.23 0 0 0-.41-.22M16.5 12l3.41-3.41c.26-.26.26-.69 0-.95L17.5 5.25 15.5 11l1 1m-1.78.78L6.88 20.62c.22-.05.42-.15.56-.3L13.72 14l1 1.22M14.72 12l2.45-2.45-3.45-2L6.88 3.38c.14-.15.34-.25.56-.3l9.37 5.41a1 1 0 0 1 0 1.73l-2.09 1.78" />
+            <a
+              href={ENV.playStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-[#0A0A0A] border border-[#333333] hover:bg-[#111111] hover:border-[#444444] rounded-[6px] px-2.5 py-1.5 transition-all text-white w-full h-[38px] shrink-0 shadow-md"
+            >
+              <svg viewBox="0 0 24 24" className="w-[19px] h-[19px] shrink-0">
+                <path d="M3.609 2.516c-.198.204-.316.522-.316.92v17.128c0 .398.118.716.316.92l.06.06L13.237 12v-.196L3.67 2.456l-.06.06z" fill="#3bccff" />
+                <path d="M16.42 15.228l-3.183-3.183V11.85l3.183-3.183.08.046 3.766 2.141c1.077.611 1.077 1.614 0 2.227l-3.766 2.141-.08.006z" fill="#ffd000" />
+                <path d="M16.5 15.182L13.237 11.92 3.609 21.548c.655.693 1.733.773 2.659.245l10.232-5.816.08-.046-.08.046z" fill="#ff3c00" />
+                <path d="M16.5 8.636L6.268 2.82C5.342 2.292 4.264 2.372 3.609 3.065L13.237 12.08 16.5 8.636z" fill="#00e676" />
               </svg>
               <div className="text-left leading-none">
-                <div className="text-[7px] uppercase font-bold text-gray-300">GET IT ON</div>
-                <div className="text-[10px] font-extrabold font-sans">Google Play</div>
+                <div className="text-[7.5px] uppercase tracking-wider text-neutral-400 font-medium font-sans whitespace-nowrap">GET IT ON</div>
+                <div className="text-[11.5px] font-bold text-white font-sans mt-0.5 whitespace-nowrap">Google Play</div>
               </div>
             </a>
 
             {/* Apple App Store Badge */}
-            <a href="https://apple.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 bg-black/20 border border-white/10 hover:border-white/20 hover:bg-black/30 rounded px-2.5 py-1.5 transition-all text-white w-32 shadow-sm">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-white shrink-0">
-                <path d="M17.05 20.28c-.98.95-2.05 1.88-3.08 1.88-1.01 0-1.4-.62-2.52-.62-1.12 0-1.54.6-2.5.62-1 .02-2.13-.97-3.13-1.92-2.02-1.94-3.56-5.48-3.56-8.81 0-5.28 3.44-8.08 6.83-8.08 1.07 0 2.08.38 2.74.38.65 0 1.88-.47 3.16-.47 1.34 0 2.57.48 3.37 1.35-2.82 1.66-2.35 5.53.51 6.7-1.17 2.8-2.52 5.56-4.32 7.27M12.03 4.31c.58-.7 1.45-1.17 2.3-1.17.1 0 .2.01.27.02-.08 1.86-1.18 3.31-2.3 3.31-.58 0-1.46-.47-2.3-1.17.84-1.25 1.45-2.29 2.03-2.99" />
+            <a
+              href={ENV.appStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-[#0A0A0A] border border-[#333333] hover:bg-[#111111] hover:border-[#444444] rounded-[6px] px-2.5 py-1.5 transition-all text-white w-full h-[38px] shrink-0 shadow-md"
+            >
+              <svg viewBox="0 0 24 24" className="w-[19px] h-[19px] fill-current text-white shrink-0">
+                <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.54 9.103 1.51 12.052 1.002 1.44 2.185 3.054 3.748 2.99 1.499-.06 2.072-.977 3.876-.977 1.802 0 2.328.977 3.893.945 1.602-.027 2.637-1.47 3.619-2.9 1.139-1.665 1.606-3.275 1.633-3.36-.059-.027-3.14-1.203-3.172-4.786-.027-2.99 2.448-4.428 2.56-4.493-1.398-2.053-3.56-2.285-4.328-2.34-1.89-.153-3.41 1.036-4.328 1.036V6.896zm2.408-4.48c.806-.985 1.348-2.354 1.198-3.719-1.174.048-2.593.782-3.435 1.768-.75.867-1.407 2.254-1.228 3.593 1.31.103 2.659-.658 3.465-1.642z" />
               </svg>
               <div className="text-left leading-none">
-                <div className="text-[7px] uppercase font-bold text-gray-300">Download on the</div>
-                <div className="text-[10px] font-extrabold font-sans">App Store</div>
+                <div className="text-[7.5px] uppercase tracking-wider text-neutral-400 font-medium font-sans whitespace-nowrap">Download on the</div>
+                <div className="text-[11.5px] font-bold text-white font-sans mt-0.5 whitespace-nowrap">App Store</div>
               </div>
-            </a>
-          </div>
-
-          {/* Contact Numbers */}
-          <div className="mt-2 text-white/90 text-[11px] leading-relaxed">
-            <span className="font-bold text-white uppercase tracking-wider text-[9px] mb-1.5 block">Contact Us</span>
-            +91-9876543210 <br />
-            +91-9876432102 <br />
-            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="text-[#E6C280] font-bold hover:underline block mt-1 uppercase tracking-wider text-[9px]">
-              Whatsapp Chat With Us
             </a>
           </div>
         </div>
