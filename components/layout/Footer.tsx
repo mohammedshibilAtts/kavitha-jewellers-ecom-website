@@ -15,9 +15,9 @@ export default function Footer() {
           <div className="flex items-center gap-2">
             {/* Gold Monogram */}
             <div className="w-7 h-7 rounded bg-gradient-to-br from-[#E6C280] to-[#C59B4C] flex items-center justify-center shadow">
-              <span className="text-primary font-serif font-bold text-xs italic">KJ</span>
+              <span className="text-primary font-sans font-bold text-xs italic">KJ</span>
             </div>
-            <span className="font-serif text-sm font-bold tracking-widest text-[#E6C280]">
+            <span className="font-sans text-sm font-bold tracking-widest text-[#E6C280]">
               KAVITHA JEWELLERS
             </span>
           </div>
