@@ -274,8 +274,8 @@ export default function ProductDetailPage() {
               <p className="text-[11px] text-subtitle italic mt-1">Exquisite designs curated specifically for you</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {relatedProducts.map((p, index) => (
+                <ProductCard key={p.id} product={p} index={index} />
               ))}
             </div>
           </section>

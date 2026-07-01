@@ -68,11 +68,11 @@ export default function Footer() {
         </div>
 
         {/* Column 2: Quick Links */}
-        <div className="flex flex-col gap-5 col-span-1">
+        <div className="flex flex-col gap-4 col-span-1">
           <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
             Quick Links
           </h4>
-          <ul className="flex flex-col gap-3 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
+          <ul className="flex flex-col gap-2 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
             {QUICK_LINKS.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="hover:text-[#E6C280] transition-colors duration-200">
@@ -84,11 +84,11 @@ export default function Footer() {
         </div>
 
         {/* Column 3: Category */}
-        <div className="flex flex-col gap-5 col-span-1">
+        <div className="flex flex-col gap-2 col-span-1">
           <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px]">
             Categories
           </h4>
-          <ul className="flex flex-col gap-3 text-white  text-[11px] font-medium tracking-[0.5px] uppercase">
+          <ul className="flex flex-col gap-2 text-white  text-[11px] font-medium tracking-[0.5px] uppercase">
             {CATEGORIES.map((category) => (
               <li key={category.href}>
                 <Link href={category.href} className="hover:text-[#E6C280] transition-colors duration-200">
@@ -105,7 +105,7 @@ export default function Footer() {
             <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px] mb-3">
               Social Media
             </h4>
-            <ul className="flex flex-col gap-3 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
+            <ul className="flex flex-col gap-2 text-white text-[11px] font-medium tracking-[0.5px] uppercase">
               {SOCIAL_LINKS.map((social) => (
                 <li key={social.href}>
                   <a
@@ -125,7 +125,7 @@ export default function Footer() {
             <h4 className="text-white font-bold text-xs uppercase tracking-[1.5px] mb-3">
               Contact Us
             </h4>
-            <ul className="flex flex-col gap-2.5 text-white text-[11px] font-medium tracking-[0.5px]">
+            <ul className="flex flex-col gap-2 text-white text-[11px] font-medium tracking-[0.5px]">
               <li>
                 <a href="tel:+919876543210" className="hover:text-[#E6C280] transition-colors duration-200 flex items-center gap-1.5">
                   <Phone size={12} className="text-[#E6C280]" />
@@ -138,12 +138,7 @@ export default function Footer() {
                   <span>+91 98764 32102</span>
                 </a>
               </li>
-              <li>
-                <a href="tel:+919876432102" className="hover:text-[#E6C280] transition-colors duration-200 flex items-center gap-1.5">
-                  <Phone size={12} className="text-[#E6C280]" />
-                  <span>+91 98764 32102</span>
-                </a>
-              </li>
+             
             
               
 
