@@ -17,8 +17,8 @@ export interface Product {
 // 6 extremely neat e-commerce studio shots with pure white or light gray background
 const IMAGES_BY_CATEGORY: Record<string, string[]> = {
   rings: [
-    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&h=500&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=500&h=500&fit=crop&q=80"
+    "https://aupay-img.s3.eu-north-1.amazonaws.com/kavithajewellers_new/webadmin/assets/products/1782913334685_UJOQ30651_zoom.webp",
+    "https://aupay-img.s3.eu-north-1.amazonaws.com/kavithajewellers_new/webadmin/assets/products/1782892614062_JNIR8329_zoom.webp"
   ],
   earrings: [
     "https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=500&h=500&fit=crop&q=80",
