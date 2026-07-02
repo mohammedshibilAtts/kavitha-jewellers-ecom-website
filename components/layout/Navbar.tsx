@@ -41,6 +41,7 @@ export default function Navbar() {
     { name: "Mangalsutra", href: "/mangalsutra" },
     { name: "Gifts", href: "/gift" },
     { name: "Schemes", href: "/schemes" },
+    
   ];
 
   return (
@@ -204,7 +205,7 @@ export default function Navbar() {
         {/* 3. Sub Navbar / Navigation Links */}
         <nav className="hidden md:block w-full border-neutral-100">
           <div className="max-w-7xl mx-auto px-8">
-            <ul className="flex items-center md:justify-center gap-7 py-2.5 overflow-x-auto whitespace-nowrap scrollbar-hide text-[10px] font-semibold tracking-[0.16em] text-[#313130]">
+            <ul className="flex  gap-7 py-2.5 overflow-x-auto whitespace-nowrap scrollbar-hide text-[10px] font-semibold tracking-[0.16em] text-[#313130]">
               {categories.map((category) => (
                 <li key={category.name}>
                   <Link

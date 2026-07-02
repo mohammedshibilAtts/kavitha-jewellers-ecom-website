@@ -27,7 +27,7 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#FFFCFC]  text-normal font-sans">
+      <body className="min-h-full flex flex-col bg-bg-custom  text-normal font-sans">
         <Navbar />
         <main className="flex-1 pt-[96px]  md:pt-[134px] flex flex-col relative">
           {children}
