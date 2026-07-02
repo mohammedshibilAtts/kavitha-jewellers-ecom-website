@@ -27,20 +27,21 @@ export default function ProductCard({ product, className = "", index = 0 }: Prod
     setIsWishlisted(!isWishlisted);
   };
 
+  // Only apply stagger delay to the first row of visible cards (8 items) to ensure smooth initial load, 
+  // while allowing scrolled/subsequent items to render instantly without delay.
+  const staggerDelay = index < 8 ? index * 0.03 : 0;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-40px" }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
-        type: "spring",
-        stiffness: 80,
-        damping: 15,
-        mass: 0.8,
-        delay: index * 0.05
+        duration: 0.35,
+        ease: "easeOut",
+        delay: staggerDelay
       }}
       whileHover={{ y: -6 }}
-      className={`flex flex-col  shrink-0 snap-start ${className}`}
+      className={`flex flex-col shrink-0 snap-start ${className}`}
     >
       <Link
         href={`/product/${product.id}`}
@@ -52,7 +53,7 @@ export default function ProductCard({ product, className = "", index = 0 }: Prod
             src={product.images[0]}
             alt={product.name}
             fill
-            className="object-contain transition-transform duration-500 group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
           />
 

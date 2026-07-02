@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ProductCard from "@/components/common/ProductCard";
 import { Product } from "@/data/products";
 
@@ -8,6 +8,41 @@ interface ProductListGridProps {
 }
 
 export default function ProductListGrid({ products, resetFilters }: ProductListGridProps) {
+  // Batch size: 12 items represent 3 rows in 4-column layout, 4 rows in 3-column layout
+  const BATCH_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset pagination count whenever products/filters change
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [products]);
+
+  // Load next batch when user scrolls near the bottom
+  useEffect(() => {
+    if (visibleCount >= products.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, products.length));
+        }
+      },
+      { rootMargin: "200px" } // Pre-load next items 200px before they enter view
+    );
+
+    const currentSentinel = sentinelRef.current;
+    if (currentSentinel) {
+      observer.observe(currentSentinel);
+    }
+
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel);
+      }
+    };
+  }, [visibleCount, products.length]);
+
   if (products.length === 0) {
     return (
       <div className="w-full bg-white border border-neutral-100 rounded-xl p-12 text-center shadow-[0_2px_15px_rgba(0,0,0,0.01)] flex flex-col items-center gap-3">
@@ -26,11 +61,22 @@ export default function ProductListGrid({ products, resetFilters }: ProductListG
     );
   }
 
+  const visibleProducts = products.slice(0, visibleCount);
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-      {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} index={index} />
-      ))}
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        {visibleProducts.map((product, index) => (
+          <ProductCard key={product.id} product={product} index={index} />
+        ))}
+      </div>
+
+      {/* Sentinel element to trigger load of subsequent rows */}
+      {visibleCount < products.length && (
+        <div ref={sentinelRef} className="w-full h-8 flex items-center justify-center py-2">
+          <div className="w-5 h-5 border-2 border-[#632C2F] border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 }

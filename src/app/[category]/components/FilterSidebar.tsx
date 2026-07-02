@@ -28,9 +28,9 @@ export default function FilterSidebar({
   ...props
 }: FilterSidebarProps) {
   return (
-    <aside className="hidden lg:block w-64 shrink-0 bg-bg-custom  rounded-xl p-5 shadow-[0_2px_15px_rgba(0,0,0,0.01)]">
-      {/* Header aligned with the top of sidebar */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#DADADA] mb-4">
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-bg-custom rounded-xl p-5 shadow-[0_2px_15px_rgba(0,0,0,0.01)] sticky top-[160px] max-h-[calc(100vh-200px)]">
+      {/* Header aligned with the top of sidebar - shrink-0 to prevent shrinking */}
+      <div className="flex items-center justify-between pb-4 border-b border-[#DADADA] mb-4 shrink-0">
         <span className="text-[13px] font-bold uppercase tracking-wider text-normal flex items-center gap-1.5">
           Filters
           {activeFiltersCount > 0 && (
@@ -42,14 +42,17 @@ export default function FilterSidebar({
         {activeFiltersCount > 0 && (
           <button
             onClick={resetFilters}
-            className="text-[12px] font-semibold text-[#632C2F] hover:opacity-85 transition-opacity uppercase tracking-wider  underline-offset-4 cursor-pointer"
+            className="text-[12px] font-semibold text-[#632C2F] hover:opacity-85 transition-opacity uppercase tracking-wider underline-offset-4 cursor-pointer"
           >
             Clear All
           </button>
         )}
       </div>
 
-      <FilterContent {...props} resetFilters={resetFilters} showResetButton={false} />
+      {/* Scrollable Filters List */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth">
+        <FilterContent {...props} resetFilters={resetFilters} showResetButton={false} />
+      </div>
     </aside>
   );
 }

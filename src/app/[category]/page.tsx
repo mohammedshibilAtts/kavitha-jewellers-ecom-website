@@ -7,6 +7,7 @@ import { useCategoryFilters } from "./hooks/useCategoryFilters";
 import FilterSidebar from "./components/FilterSidebar";
 import MobileFiltersDrawer from "./components/MobileFiltersDrawer";
 import ProductListGrid from "./components/ProductListGrid";
+import SortDropdown from "./components/SortDropdown";
 
 function CategoryPageContent() {
   const {
@@ -129,20 +130,8 @@ function CategoryPageContent() {
                 Filters
               </button>
 
-              {/* Sort Dropdown */}
-              <div className="flex items-center gap-2 border border-neutral-200 bg-white px-3 py-1.5 rounded-[4px] text-xs font-semibold text-neutral-700 min-w-[180px]">
-                <span className="text-neutral-400 font-medium">Sort by:</span>
-                <select
-                  value={sortBy === "price-asc" ? "low-to-high" : sortBy === "price-desc" ? "high-to-low" : sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="bg-transparent focus:outline-none cursor-pointer text-xs pr-1 font-bold text-neutral-800 flex-1"
-                >
-                  <option value="popular">Popularity</option>
-                  <option value="low-to-high">Price: Low to High</option>
-                  <option value="high-to-low">Price: High to Low</option>
-                  <option value="rating">Customer Rating</option>
-                </select>
-              </div>
+              {/* Custom Sort Dropdown */}
+              <SortDropdown sortBy={sortBy} onChange={handleSortChange} />
             </div>
 
             <ProductListGrid

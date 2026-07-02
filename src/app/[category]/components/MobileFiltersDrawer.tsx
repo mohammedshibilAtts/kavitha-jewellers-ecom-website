@@ -48,7 +48,7 @@ export default function MobileFiltersDrawer({
         </div>
 
         {/* Mobile Drawer Filter Content */}
-        <div className="flex-1 overflow-y-auto pr-1">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           <FilterContent
             {...filterProps}
           />
