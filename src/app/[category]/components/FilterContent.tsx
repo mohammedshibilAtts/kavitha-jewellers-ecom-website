@@ -6,7 +6,7 @@ import {
   PRICE_RANGES,
   WEIGHT_RANGES,
   GENDERS,
-} from "../hooks/useCategoryFilters";
+} from "@/lib/hooks/useCategoryFilters";
 
 interface FilterContentProps {
   categorySlug: string;

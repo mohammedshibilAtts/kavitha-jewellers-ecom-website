@@ -1,21 +1,19 @@
 "use client";
 
 import React, { Suspense, useState } from "react";
-import Link from "next/link";
-import { ChevronRight, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useCategoryFilters } from "@/lib/hooks/useCategoryFilters";
-import FilterSidebar from "./components/FilterSidebar";
-import MobileFiltersDrawer from "./components/MobileFiltersDrawer";
-import ProductListGrid from "./components/ProductListGrid";
-import SortDropdown from "./components/SortDropdown";
+import FilterSidebar from "../../[category]/components/FilterSidebar";
+import MobileFiltersDrawer from "../../[category]/components/MobileFiltersDrawer";
+import ProductListGrid from "../../[category]/components/ProductListGrid";
+import SortDropdown from "../../[category]/components/SortDropdown";
 
 function CategoryPageContent() {
   const {
-    categorySlug,
+    categoryId,
     categoryName,
     selectedMetals,
     selectedPurities,
-    selectedCategories,
     selectedPriceRanges,
     selectedWeightRanges,
     selectedGenders,
@@ -27,16 +25,15 @@ function CategoryPageContent() {
     activeFiltersCount,
     toggleMetal,
     togglePurity,
-    toggleCategory,
     togglePriceRange,
     toggleWeightRange,
     toggleGender,
     toggleNewArrivals,
     handleSortChange,
     resetFilters,
+    isLoading,
   } = useCategoryFilters();
 
-  // Local state for tabs that aren't mapped to products data (e.g. Quick Delivery, Recently Viewed, Store Pickup)
   const [activeExtraTab, setActiveExtraTab] = useState<string>("");
 
   const handleTabClick = (tabId: string) => {
@@ -49,7 +46,6 @@ function CategoryPageContent() {
     } else if (tabId === "all") {
       resetFilters();
     } else {
-      // For quick-delivery, recently-viewed, store-pickup
       toggleNewArrivals(false);
       setActiveExtraTab(tabId);
     }
@@ -62,10 +58,25 @@ function CategoryPageContent() {
     return activeExtraTab === tabId;
   };
 
+  if (isLoading) {
+    return (
+      <div className="bg-bg-custom min-h-screen py-12 flex items-center justify-center font-sans select-none">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Loading Collection...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-bg-custom min-h-screen py-6 select-none font-sans">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-
+        
+        {/* Title area */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold uppercase tracking-wider text-neutral-800">{categoryName}</h1>
+        </div>
 
         {/* 1. Top Horizontal Tab Bar */}
         <div className="flex flex-wrap gap-2.5 mb-8">
@@ -97,17 +108,17 @@ function CategoryPageContent() {
         <div className="flex gap-8 items-start">
           {/* Desktop Filters Sidebar */}
           <FilterSidebar
-            categorySlug={categorySlug}
+            categorySlug=""
             selectedMetals={selectedMetals}
             selectedPurities={selectedPurities}
-            selectedCategories={selectedCategories}
+            selectedCategories={[]}
             selectedPriceRanges={selectedPriceRanges}
             selectedWeightRanges={selectedWeightRanges}
             selectedGenders={selectedGenders}
             isNewArrivals={isNewArrivals}
             toggleMetal={toggleMetal}
             togglePurity={togglePurity}
-            toggleCategory={toggleCategory}
+            toggleCategory={() => {}}
             togglePriceRange={togglePriceRange}
             toggleWeightRange={toggleWeightRange}
             toggleGender={toggleGender}
@@ -145,17 +156,17 @@ function CategoryPageContent() {
         <MobileFiltersDrawer
           isOpen={isMobileFiltersOpen}
           onClose={() => setIsMobileFiltersOpen(false)}
-          categorySlug={categorySlug}
+          categorySlug=""
           selectedMetals={selectedMetals}
           selectedPurities={selectedPurities}
-          selectedCategories={selectedCategories}
+          selectedCategories={[]}
           selectedPriceRanges={selectedPriceRanges}
           selectedWeightRanges={selectedWeightRanges}
           selectedGenders={selectedGenders}
           isNewArrivals={isNewArrivals}
           toggleMetal={toggleMetal}
           togglePurity={togglePurity}
-          toggleCategory={toggleCategory}
+          toggleCategory={() => {}}
           togglePriceRange={togglePriceRange}
           toggleWeightRange={toggleWeightRange}
           toggleGender={toggleGender}

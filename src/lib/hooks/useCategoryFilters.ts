@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useProductsList } from "@/lib/hooks/useProducts";
+import { useProductsList, useProductsByCategory } from "@/lib/hooks/useProducts";
+import { useCategoryDetails } from "@/lib/hooks/useCategory";
 import { CompatibleProduct } from "@/components/common/ProductCard";
+import { encodeId, decodeId } from "@/lib/utils/obfuscate";
 
 export const AVAILABLE_CATEGORIES = [
   { name: "Rings", slug: "rings" },
@@ -36,13 +38,27 @@ export function useCategoryFilters() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categorySlug = (params.category as string) || "all";
 
-  // Fetch live products
-  const { data: dbProducts, isLoading } = useProductsList();
+  // Route modes: ID-based (/category/[id]) vs Slug-based (/[category])
+  const categoryIdEncoded = params.id as string | undefined;
+  const categoryId = useMemo(() => categoryIdEncoded ? decodeId(categoryIdEncoded) : undefined, [categoryIdEncoded]);
+  const categorySlug = (params.category as string | undefined) || (!categoryId ? "all" : "");
+
+  // 1. Fetch category details if we have an ID
+  const { data: categoryDetail } = useCategoryDetails(categoryId || "");
+
+  // 2. Fetch products:
+  const { data: dbProductsByCategory, isLoading: isCategoryProductsLoading } = useProductsByCategory(categoryId || "");
+  const { data: dbAllProducts, isLoading: isAllProductsLoading } = useProductsList();
+
   const products = useMemo(() => {
-    return (dbProducts || []) as CompatibleProduct[];
-  }, [dbProducts]);
+    if (categoryId) {
+      return (dbProductsByCategory || []) as CompatibleProduct[];
+    }
+    return (dbAllProducts || []) as CompatibleProduct[];
+  }, [categoryId, dbProductsByCategory, dbAllProducts]);
+
+  const isLoading = categoryId ? isCategoryProductsLoading : isAllProductsLoading;
 
   // Filter States
   const [selectedPriceRanges, setSelectedPriceRanges] = useState<string[]>([]);
@@ -103,7 +119,7 @@ export function useCategoryFilters() {
       selectedGenders.length +
       selectedMetals.length +
       selectedWeightRanges.length +
-      selectedCategories.length +
+      (categoryId ? 0 : selectedCategories.length) +
       selectedPurities.length +
       (isNewArrivals ? 1 : 0)
     );
@@ -115,10 +131,16 @@ export function useCategoryFilters() {
     selectedCategories,
     selectedPurities,
     isNewArrivals,
+    categoryId,
   ]);
 
   // Get display name for category
   const categoryName = useMemo(() => {
+    if (categoryId) {
+      if (!categoryDetail) return "Loading Category...";
+      return categoryDetail.category_name || categoryDetail.name || "Category Products";
+    }
+
     if (categorySlug === "all") {
       if (selectedCategories.length > 0) {
         return selectedCategories
@@ -155,7 +177,7 @@ export function useCategoryFilters() {
       default:
         return categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
     }
-  }, [categorySlug, selectedCategories, isNewArrivals]);
+  }, [categoryId, categoryDetail, categorySlug, selectedCategories, isNewArrivals]);
 
   // Helper to update query string in router
   const updateUrl = (
@@ -172,7 +194,7 @@ export function useCategoryFilters() {
     
     if (metals.length > 0) nextParams.set("metal", metals.join(","));
     if (purities.length > 0) nextParams.set("purity", purities.join(","));
-    if (categoriesList.length > 0) nextParams.set("category", categoriesList.join(","));
+    if (!categoryId && categoriesList.length > 0) nextParams.set("category", categoriesList.join(","));
     if (prices.length > 0) nextParams.set("priceRange", prices.join(","));
     if (weights.length > 0) nextParams.set("weightRange", weights.join(","));
     if (gendersList.length > 0) nextParams.set("gender", gendersList.join(","));
@@ -180,28 +202,31 @@ export function useCategoryFilters() {
     if (newArrivalsOnly) nextParams.set("newarrivals", "true");
     
     const queryString = nextParams.toString();
-    router.replace(`/${categorySlug}${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    const baseRedirect = categoryId ? `/category/${encodeId(categoryId)}` : `/${categorySlug}`;
+    router.replace(`${baseRedirect}${queryString ? `?${queryString}` : ""}`, { scroll: false });
   };
 
   // Filter and Sort Logic
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    // 1. Category Slug Filter
-    if (categorySlug === "gold") {
-      result = result.filter((p) => (p.metal || "") === "gold");
-    } else if (categorySlug === "silver") {
-      result = result.filter((p) => (p.metal || "") === "silver");
-    } else if (categorySlug === "platinum") {
-      result = result.filter((p) => (p.metal || "") === "platinum");
-    } else if (categorySlug === "new-arrivals" || categorySlug === "latest-arrivals") {
-      result = [...products].reverse();
-    } else if (categorySlug !== "all") {
-      result = result.filter((p) => {
-        const pc = (p.category || "").toLowerCase();
-        const sc = categorySlug.toLowerCase();
-        return pc === sc || pc === sc + "s" || sc === pc + "s" || pc.includes(sc);
-      });
+    // 1. Category Slug Filter (Only for slug mode, not ID mode)
+    if (!categoryId) {
+      if (categorySlug === "gold") {
+        result = result.filter((p) => (p.metal || "") === "gold");
+      } else if (categorySlug === "silver") {
+        result = result.filter((p) => (p.metal || "") === "silver");
+      } else if (categorySlug === "platinum") {
+        result = result.filter((p) => (p.metal || "") === "platinum");
+      } else if (categorySlug === "new-arrivals" || categorySlug === "latest-arrivals") {
+        result = [...products].reverse();
+      } else if (categorySlug !== "all") {
+        result = result.filter((p) => {
+          const pc = (p.category || "").toLowerCase();
+          const sc = categorySlug.toLowerCase();
+          return pc === sc || pc === sc + "s" || sc === pc + "s" || pc.includes(sc);
+        });
+      }
     }
 
     // 2. Sidebar/Query Metal Filter
@@ -216,8 +241,8 @@ export function useCategoryFilters() {
       );
     }
 
-    // 4. Sidebar/Query Category Filter
-    if (selectedCategories.length > 0) {
+    // 4. Sidebar/Query Category Filter (Only for slug mode)
+    if (!categoryId && selectedCategories.length > 0) {
       result = result.filter((p) => {
         return selectedCategories.some((cat) => {
           const pc = (p.category || "").toLowerCase();
@@ -256,7 +281,6 @@ export function useCategoryFilters() {
       result = result.filter((p) => {
         return selectedGenders.some((genderId) => {
           const nameLower = (p.product_name || p.name || "").toLowerCase();
-          const descLower = (p.description || "").toLowerCase();
           if (genderId === "kids") {
             return nameLower.includes("kids") || nameLower.includes("baby") || nameLower.includes("stud");
           }
@@ -288,6 +312,7 @@ export function useCategoryFilters() {
     return result;
   }, [
     products,
+    categoryId,
     categorySlug,
     selectedMetals,
     selectedPurities,
@@ -334,6 +359,7 @@ export function useCategoryFilters() {
   };
 
   const toggleCategory = (catSlug: string) => {
+    if (categoryId) return; // categoryId pages don't filter categories
     const next = selectedCategories.includes(catSlug)
       ? selectedCategories.filter((c) => c !== catSlug)
       : [...selectedCategories, catSlug];
@@ -439,10 +465,12 @@ export function useCategoryFilters() {
     setSelectedGenders([]);
     setSortBy("popular");
     setIsNewArrivals(false);
-    router.replace(`/${categorySlug}`, { scroll: false });
+    const baseRedirect = categoryId ? `/category/${encodeId(categoryId)}` : `/${categorySlug}`;
+    router.replace(baseRedirect, { scroll: false });
   };
 
   return {
+    categoryId,
     categorySlug,
     categoryName,
     selectedMetals,
@@ -466,5 +494,6 @@ export function useCategoryFilters() {
     toggleNewArrivals,
     handleSortChange,
     resetFilters,
+    isLoading,
   };
 }

@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Compass, Phone, MessageSquare } from "lucide-react";
 import { ENV } from "@/config/env";
 
+import { useActiveCategories } from "@/lib/hooks/useCategory";
+
 // Link Arrays for Dynamic Mapping
 const QUICK_LINKS = [
   { name: "Account", href: "/account" },
@@ -15,17 +17,6 @@ const QUICK_LINKS = [
   { name: "My Schemes", href: "/schemes" },
 ];
 
-const CATEGORIES = [
-  { name: "Rings", href: "/rings" },
-  { name: "Earrings", href: "/earrings" },
-  { name: "Bangles & Bracelets", href: "/bangles-bracelets" },
-  { name: "Solitaire", href: "/solitaire" },
-  { name: "Necklaces & Pendants", href: "/necklaces-pendants" },
-  { name: "Gold Jewellery", href: "/gold" },
-  { name: "Silver Jewellery", href: "/silver" },
-  { name: "Gifts", href: "/gift" },
-];
-
 const SOCIAL_LINKS = [
   { name: "Instagram", href: "https://instagram.com" },
   { name: "Facebook", href: "https://facebook.com" },
@@ -33,7 +24,16 @@ const SOCIAL_LINKS = [
   { name: "Youtube", href: "https://youtube.com" },
 ];
 
+import { encodeId } from "@/lib/utils/obfuscate";
+
 export default function Footer() {
+  const { data: dbCategories } = useActiveCategories();
+  const activeDbCats = dbCategories || [];
+  const footerCategories = activeDbCats.slice(0, 8).map((cat) => ({
+    name: cat.category_name,
+    href: `/category/${encodeId(cat._id)}`
+  }));
+
   return (
     <footer className="w-full bg-primary text-white mt-auto border-t border-white/10 select-none">
       {/* Main Grid */}
@@ -89,7 +89,7 @@ export default function Footer() {
             Categories
           </h4>
           <ul className="flex flex-col gap-2 text-white  text-[11px] font-medium tracking-[0.5px] uppercase">
-            {CATEGORIES.map((category) => (
+            {footerCategories.map((category) => (
               <li key={category.href}>
                 <Link href={category.href} className="hover:text-[#E6C280] transition-colors duration-200">
                   {category.name}

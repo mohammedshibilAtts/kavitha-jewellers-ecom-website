@@ -4,22 +4,86 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Star } from "lucide-react";
-import { Product } from "@/data/products";
+import { Product as DbProduct } from "@/lib/api/types";
 import { motion } from "framer-motion";
 
+export interface ProductImageObject {
+  thumbnail?: string;
+  detail?: string;
+  zoom?: string;
+}
+
+export interface CompatibleProduct {
+  _id?: string;
+  id?: number;
+  name?: string;
+  product_name?: string;
+  price?: number;
+  totalprice?: number;
+  originalPrice?: number;
+  discountper?: number;
+  purity?: string;
+  weight?: number;
+  grossWeight?: number;
+  images?: string[];
+  product_image: (string | ProductImageObject)[];
+  category?: string;
+  description?: string;
+  metal?: string;
+  bestSeller?: boolean;
+  currentMetalRate?: number;
+  priceBreakup?: any;
+  rating?: number;
+  pathurl?: string;
+}
+
 interface ProductCardProps {
-  product: Product;
+  product: CompatibleProduct;
   className?: string;
   index?: number;
 }
 
+import { encodeId } from "@/lib/utils/obfuscate";
+
 export default function ProductCard({ product, className = "", index = 0 }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const hasDiscount = product.discountper;
-  const discountPercent = hasDiscount
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  // Resolve database vs mock product properties
+  const id = product._id || product.id || "";
+  const name = product.product_name || product.name || "Product Name";
+  const price = product.price || product.totalprice || 0;
+  const originalPrice = product.originalPrice || price;
+  const discountper = product.discountper || 0;
+  const purity = product.purity || "22kt";
+  const weight = product.weight || product.grossWeight || 0;
+
+  let imageSrc = "/images/placeholder.png";
+  if (product.images && product.images[0]) {
+    imageSrc = product.images[0];
+  } else if (product.product_image && product.product_image[0]) {
+    const pimg = product.product_image[0];
+    const pathurl = product.pathurl || "";
+    if (typeof pimg === "string") {
+      imageSrc = pimg;
+    } else {
+      const detailFile = pimg.detail || pimg.thumbnail || pimg.zoom;
+      imageSrc = detailFile ? `${pathurl}${detailFile}` : "/images/placeholder.png";
+    }
+  }
+
+  // Guard against invalid/relative URLs for Next.js Image loader
+  if (imageSrc) {
+    if (!imageSrc.startsWith("/") && !imageSrc.startsWith("http://") && !imageSrc.startsWith("https://")) {
+      // If it looks like an absolute S3 path without protocol, prefix it or default it
+      imageSrc = "/images/placeholder.png";
+    }
+  } else {
+    imageSrc = "/images/placeholder.png";
+  }
+
+
+
+  const hasDiscount = discountper > 0;
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,14 +108,14 @@ export default function ProductCard({ product, className = "", index = 0 }: Prod
       className={`flex flex-col shrink-0 snap-start ${className}`}
     >
       <Link
-        href={`/product/${product.id}`}
+        href={`/product/${encodeId(String(id))}`}
         className="group flex flex-col w-full h-full"
       >
         {/* 1. Image Viewport */}
         <div className="bg-[#FAF7F2]/40 aspect-square flex items-center justify-center relative p-4 overflow-hidden border-b border-[#F2EAE0]/30">
           <Image
-            src={product.images[0]}
-            alt={product.name}
+            src={imageSrc}
+            alt={name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
@@ -72,12 +136,12 @@ export default function ProductCard({ product, className = "", index = 0 }: Prod
           <div className="flex flex-col gap-1">
             {/* Metal purity and weight */}
             <span className="text-[10px] font-medium  text-primary uppercase tracking-wider leading-none">
-              {product.purity} • {product.weight}g
+              {purity} • {weight}g
             </span>
 
             {/* Product Name */}
             <h3 className="font-semibold text-[11px] md:text-xs  line-clamp-1 mt-0.5 uppercase tracking-wide group-hover:text-primary transition-colors leading-tight">
-              {product.name}
+              {name}
             </h3>
           </div>
 
@@ -86,11 +150,11 @@ export default function ProductCard({ product, className = "", index = 0 }: Prod
             <div className="flex items-baseline justify-between ">
               <div className="flex items-baseline gap-1.5">
                 <span className="font-bold text-[#232323] text-xs md:text-sm">
-                  ₹{product.price.toLocaleString("en-IN")}
+                  ₹{price.toLocaleString("en-IN")}
                 </span>
                 {hasDiscount && (
                   <span className="text-[12px] text-primary font-semibold">
-                    {`(${product.discountper}% OFF)`}
+                    {`(${discountper}% OFF)`}
                   </span>
                 )}
               </div>

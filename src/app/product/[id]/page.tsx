@@ -16,32 +16,41 @@ import {
   ShieldCheck,
   Award,
   Users,
-  Info,
   CheckCircle2,
   X,
   IndianRupee
 } from "lucide-react";
-import { products } from "@/data/products";
-import ProductCard from "@/components/common/ProductCard";
+import ProductCard, { CompatibleProduct } from "@/components/common/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { useProductDetails, useProductsList } from "@/lib/hooks/useProducts";
+import ProductDetailSkeleton from "./components/ProductDetailSkeleton";
+import { decodeId } from "@/lib/utils/obfuscate";
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const productId = Number(params.id);
 
-  // Fetch product from mock list
+  const decodedId = useMemo(() => decodeId(params.id as string), [params.id]);
+  const { data: dbProduct, isLoading: productLoading } = useProductDetails(decodedId);
+  const { data: dbProducts } = useProductsList();
+
+  const products = useMemo(() => {
+    return (dbProducts || []) as CompatibleProduct[];
+  }, [dbProducts]);
+
   const product = useMemo(() => {
-    return products.find((p) => p.id === productId) || products[0];
-  }, [productId]);
+    return dbProduct as CompatibleProduct;
+  }, [dbProduct]);
 
   // Related products (same category, excluding current product)
   const relatedProducts = useMemo(() => {
-    let list = products.filter((p) => p.category === product.category && p.id !== product.id);
+    if (!product) return [];
+    const currentId = product._id || product.id;
+    let list = products.filter((p) => p.category === product.category && (p._id || p.id) !== currentId);
     if (list.length === 0) {
-      list = products.filter((p) => p.id !== product.id);
+      list = products.filter((p) => (p._id || p.id) !== currentId);
     }
     return list.slice(0, 4);
-  }, [product]);
+  }, [product, products]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
@@ -94,28 +103,75 @@ export default function ProductDetailPage() {
     }
   };
 
-  // Create exactly 4 thumbnails using the product image
+  // Create image URLs with details, thumbnails, and zoom variants
   const displayImages = useMemo(() => {
-    return Array(4).fill(product.images[0]);
-  }, [product.images]);
+    if (!product) return [];
+    const pathurl = product.pathurl || "";
+    if (product.product_image && product.product_image.length > 0) {
+      return product.product_image.map((img: any) => {
+        if (typeof img === "string") {
+          return {
+            detail: img,
+            thumbnail: img,
+            zoom: img
+          };
+        }
+        return {
+          detail: img.detail ? `${pathurl}${img.detail}` : "/images/placeholder.png",
+          thumbnail: img.thumbnail ? `${pathurl}${img.thumbnail}` : "/images/placeholder.png",
+          zoom: img.zoom ? `${pathurl}${img.zoom}` : "/images/placeholder.png"
+        };
+      });
+    }
+    if (product.images && product.images.length > 0) {
+      return product.images.map((img: string) => ({
+        detail: img,
+        thumbnail: img,
+        zoom: img
+      }));
+    }
+    return [{
+      detail: "/images/placeholder.png",
+      thumbnail: "/images/placeholder.png",
+      zoom: "/images/placeholder.png"
+    }];
+  }, [product]);
 
-  // Helper to convert small crop to high-resolution zoom crop
-  const getLargeImageUrl = (url: string) => {
-    if (!url) return "";
-    return url.replace("w=500&h=500", "w=1200&h=1200");
-  };
+  if (productLoading) {
+    return <ProductDetailSkeleton />;
+  }
 
-  const hasDiscount = product.discountper && product.discountper > 0;
-  const discountPercent = product.discountper || 3;
+  if (!product) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center bg-bg-custom gap-4">
+        <h2 className="text-lg font-bold text-title">Product Not Found</h2>
+        <Link href="/" className="px-4 py-2 bg-primary text-white rounded text-sm font-semibold hover:bg-primary/90 transition-colors">
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
+
+
+  const id = product._id || product.id || "";
+  const name = product.product_name || product.name || "Product";
+  const purity = product.purity || "22kt";
+  const weight = product.weight || product.grossWeight || 0;
+  const price = product.price || product.totalprice || 0;
+  const discountper = product.discountper || 0;
+
+  const hasDiscount = discountper > 0;
+  const discountPercent = discountper || 3;
 
   // Metal Rate calculation breakdown
-  const dailyRate = product.metal === "silver" ? 95 : 7325; // Gold 22KT rate: 7325/g, Silver: 95/g
-  const metalValue = Math.round(product.weight * dailyRate);
+  const dailyRate = product.metal === "silver" ? 95 : (product.currentMetalRate || 7325); // Gold 22KT rate: 7325/g, Silver: 95/g
+
+  const priceBreakup = product.priceBreakup || {};
+  const metalValue = priceBreakup.metalValue || Math.round(weight * dailyRate);
 
   // Making charges
-  const totalBeforeTax = Math.round(product.price / 1.03);
-  const makingCharges = Math.max(1200, totalBeforeTax - metalValue);
-  const calculatedTax = Math.round((metalValue + makingCharges) * 0.03);
+  const makingCharges = priceBreakup.makingValue || Math.max(1200, Math.round(price / 1.03) - metalValue);
+  const calculatedTax = priceBreakup.gstValue || Math.round((metalValue + makingCharges) * 0.03);
 
   return (
     <div className="bg-bg-custom min-h-screen py-8 select-none font-sans">
@@ -123,11 +179,11 @@ export default function ProductDetailPage() {
 
         {/* Breadcrumbs */}
         <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-500 mb-6">
-          <Link href={`/${product.category}`} className="hover:text-primary transition-colors capitalize">
-            {product.category.replace("-", " & ")}
+          <Link href={`/${product.category || "all"}`} className="hover:text-primary transition-colors capitalize">
+            {(product.category || "all").replace("-", " & ")}
           </Link>
           <span className="text-neutral-400">/</span>
-          <span className="text-neutral-900 tracking-wide ">{product.name}</span>
+          <span className="text-neutral-900 tracking-wide ">{name}</span>
         </div>
 
         {/* Main Product Layout Grid */}
@@ -143,7 +199,7 @@ export default function ProductDetailPage() {
                   onScroll={handleInlineScroll}
                   className="bg-[#FAF7F2]/40 aspect-square rounded-sm border border-[#F2EAE0]/30 flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth"
                 >
-                  {displayImages.map((img, idx) => (
+                  {displayImages.map((img: { detail: string; thumbnail: string; zoom: string }, idx: number) => (
                     <div
                       key={idx}
                       onClick={() => {
@@ -156,8 +212,8 @@ export default function ProductDetailPage() {
                       className="w-full h-full shrink-0 snap-center relative flex items-center justify-center cursor-pointer select-none"
                     >
                       <Image
-                        src={img}
-                        alt={product.name}
+                        src={img.detail}
+                        alt={name}
                         fill
                         className="object-contain pointer-events-none select-none"
                         draggable={false}
@@ -169,7 +225,7 @@ export default function ProductDetailPage() {
 
                 {/* Dot Pagination */}
                 <div className="flex justify-center gap-1.5 mt-3">
-                  {displayImages.map((_, idx) => (
+                  {displayImages.map((_: any, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => {
@@ -191,12 +247,12 @@ export default function ProductDetailPage() {
                     <ReactImageMagnify
                       {...{
                         smallImage: {
-                          alt: product.name,
+                          alt: name,
                           isFluidWidth: true,
-                          src: displayImages[selectedImage]
+                          src: displayImages[selectedImage]?.detail || "/images/placeholder.png"
                         },
                         largeImage: {
-                          src: getLargeImageUrl(displayImages[selectedImage]),
+                          src: displayImages[selectedImage]?.zoom || "/images/placeholder.png",
                           width: 1200,
                           height: 1200
                         },
@@ -212,7 +268,7 @@ export default function ProductDetailPage() {
 
                 {/* Thumbnails Row */}
                 <div className="flex gap-4 mt-1">
-                  {displayImages.map((img, idx) => (
+                  {displayImages.map((img: { detail: string; thumbnail: string; zoom: string }, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
@@ -220,8 +276,8 @@ export default function ProductDetailPage() {
                         }`}
                     >
                       <Image
-                        src={img}
-                        alt={`${product.name} thumbnail ${idx + 1}`}
+                        src={img.thumbnail}
+                        alt={`${name} thumbnail ${idx + 1}`}
                         fill
                         className="object-contain p-1"
                       />
@@ -238,10 +294,10 @@ export default function ProductDetailPage() {
             {/* Title, SKU & Category Info */}
             <div className="flex flex-col gap-1">
               <h1 className="text-xl md:text-2xl font-bold text-[#232323] tracking-wide  leading-tight">
-                {product.name}
+                {name}
               </h1>
               <span className="text-[10px] font-medium text-[#747474] tracking-wider">
-                SKU: 202021-TYP{product.id}
+                SKU: {id}
               </span>
             </div>
 
@@ -254,12 +310,14 @@ export default function ProductDetailPage() {
                     strokeWidth={3}
                     className=" inline-block"
                   />
-                  <span>{product.price.toLocaleString("en-IN")}</span>
+                  <span>{price.toLocaleString("en-IN")}</span>
                 </span>
 
-                <span className="text-xs font-bold text-primary  px-1 py-0.5 rounded-sm">
-                  ({discountPercent}% OFF)
-                </span>
+                {hasDiscount && (
+                  <span className="text-xs font-bold text-primary  px-1 py-0.5 rounded-sm">
+                    ({discountPercent}% OFF)
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 text-[10px] font-medium text-[#747474] tracking-wider">
                 <span>(MRP Inclusive of all taxes)</span>
@@ -274,7 +332,7 @@ export default function ProductDetailPage() {
 
             {/* Add to Cart & Share Actions */}
             <div className="flex gap-3">
-              <button className="flex-1 bg-[#632C2F] hover:opacity-90 active:scale-98 text-white font-bold text-xs tracking-wider py-3 px-6 rounded-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md">
+              <button className="w-[180px] bg-[#632C2F] hover:opacity-90 active:scale-98 text-white font-bold text-xs tracking-wider py-3 px-6 rounded-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md">
                 <ShoppingCart size={15} />
                 Add To Cart
               </button>
@@ -284,31 +342,30 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Check Delivery Section */}
-            <div className="flex flex-col gap-2.5">
-              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Check Delivery</span>
+            <div className="flex flex-col gap-2 max-w-[360px]">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Check Delivery</span>
 
               <div className="flex gap-2">
-                <div className="flex-1 flex items-center gap-2 border border-neutral-200 bg-white px-3 py-2 rounded-sm text-xs text-neutral-700">
-                  <MapPin size={14} className="text-[#632C2F]" />
+                <div className="flex-1 flex items-center gap-1.5 border border-neutral-200 bg-white px-2.5 py-1.5 rounded-sm text-xs text-neutral-700">
+                  <MapPin size={12} className="text-[#632C2F] shrink-0" />
                   <input
                     type="text"
                     value={`Delivering to ${pincode}`}
                     onChange={(e) => setPincode(e.target.value.replace("Delivering to ", ""))}
-                    className="bg-transparent focus:outline-none flex-1 font-bold text-neutral-700 text-xs"
+                    className="bg-transparent focus:outline-none flex-1 font-bold text-neutral-700 text-[11px]"
                   />
                 </div>
-                <button className="bg-[#632C2F] hover:opacity-95 text-white font-bold text-[10px] md:text-xs tracking-wider px-4 rounded-sm uppercase cursor-pointer">
-                  Use Current Location
+                <button className="border border-[#632C2F] text-[#632C2F] hover:bg-[#632C2F] hover:text-white font-bold text-[9px] tracking-wider px-3 rounded-sm uppercase transition-colors cursor-pointer shrink-0">
+                  Use Location
                 </button>
               </div>
 
-              <div className="flex items-start gap-2.5 mt-1">
-                <Truck size={18} className="text-[#632C2F] mt-0.5 shrink-0" />
-                <div className="flex flex-col">
-                  <p className="text-xs font-bold text-neutral-800">Expected Delivery by 5 - 10 Days</p>
-                  <p className="text-[10px] text-neutral-500 mt-0.5">
-                    Order in Next 22 Hrs 30 Mins, <span className="underline cursor-pointer">T&C</span>
-                  </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Truck size={14} className="text-[#632C2F] shrink-0" />
+                <div className="flex items-center gap-2 text-[10px] text-neutral-600">
+                  <span className="font-bold text-neutral-800">Delivery by 5 - 10 Days</span>
+                  <span className="text-neutral-300">|</span>
+                  <span>Order in 22h 30m</span>
                 </div>
               </div>
             </div>
@@ -324,10 +381,10 @@ export default function ProductDetailPage() {
             {/* Spec Capsules */}
             <div className="flex flex-wrap gap-2 mt-1">
               <span className="bg-[#F9F9F9] text-neutral-700 text-[10px] font-semibold px-3 py-1.5 rounded-sm border border-neutral-200">
-                {product.purity}
+                {purity}
               </span>
               <span className="bg-[#F9F9F9] text-neutral-700 text-[10px] font-semibold px-3 py-1.5 rounded-sm border border-neutral-200">
-                {product.weight} g
+                {weight} g
               </span>
               <span className="bg-[#F9F9F9] text-neutral-700 text-[10px] font-semibold px-3 py-1.5 rounded-sm border border-neutral-200">
                 0.040 CT
@@ -344,10 +401,10 @@ export default function ProductDetailPage() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5 text-neutral-800">
                   <Award size={16} className="text-[#632C2F]" />
-                  <span className="text-xs font-bold text-neutral-800">{product.purity}</span>
+                  <span className="text-xs font-bold text-neutral-800">{purity}</span>
                 </div>
                 <div className="flex flex-col gap-1 text-[10px] text-neutral-500 font-semibold uppercase tracking-wider pl-5">
-                  <span>Gross: {product.weight} g</span>
+                  <span>Gross: {weight} g</span>
                   <span>Height: 4.35 mm</span>
                   <span>Width: 9.22 mm</span>
                 </div>
@@ -426,7 +483,7 @@ export default function ProductDetailPage() {
 
                 <div className="flex flex-col gap-3 text-xs text-neutral-600">
                   <div className="flex justify-between items-center py-1 border-b border-neutral-50">
-                    <span>Metal Value ({product.weight}g @ ₹{dailyRate}/g)</span>
+                    <span>Metal Value ({weight}g @ ₹{dailyRate}/g)</span>
                     <span className="font-bold text-neutral-800">₹{metalValue.toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-neutral-50">
@@ -439,7 +496,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="flex justify-between items-center py-2 text-sm font-extrabold text-[#632C2F] border-t border-neutral-100 mt-1">
                     <span>Total Price</span>
-                    <span>₹{product.price.toLocaleString("en-IN")}</span>
+                    <span>₹{price.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
               </motion.div>
@@ -458,7 +515,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {relatedProducts.map((p, index) => (
-                <ProductCard key={p.id} product={p} index={index} />
+                <ProductCard key={p._id || p.id} product={p} index={index} />
               ))}
             </div>
           </section>
@@ -494,15 +551,15 @@ export default function ProductDetailPage() {
                   onScroll={handleFullscreenScroll}
                   className="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth"
                 >
-                  {displayImages.map((img, idx) => (
+                  {displayImages.map((img: { detail: string; thumbnail: string; zoom: string }, idx: number) => (
                     <div
                       key={idx}
                       className="w-full h-full flex-shrink-0 snap-center relative flex items-center justify-center p-6"
                     >
                       <div className="w-full h-full relative">
                         <Image
-                          src={img}
-                          alt={`${product.name} fullscreen ${idx + 1}`}
+                          src={img.zoom}
+                          alt={`${name} fullscreen ${idx + 1}`}
                           fill
                           className="object-contain pointer-events-none select-none"
                           draggable={false}
@@ -517,7 +574,7 @@ export default function ProductDetailPage() {
               {/* Bottom Thumbnails Navigation */}
               <div className="px-4 py-4 border-t border-neutral-100 bg-white">
                 <div className="flex justify-center gap-3 max-w-xs mx-auto">
-                  {displayImages.map((img, idx) => (
+                  {displayImages.map((img: { detail: string; thumbnail: string; zoom: string }, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => {
@@ -528,7 +585,7 @@ export default function ProductDetailPage() {
                         }`}
                     >
                       <Image
-                        src={img}
+                        src={img.thumbnail}
                         alt="thumbnail"
                         fill
                         className="object-contain p-0.5"

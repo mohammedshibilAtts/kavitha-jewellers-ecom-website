@@ -1,15 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useProductsList } from "@/lib/hooks/useProducts";
+import { useProductsByCategory } from "@/lib/hooks/useProducts";
+import { useCategoryDetails } from "@/lib/hooks/useCategory";
 import { CompatibleProduct } from "@/components/common/ProductCard";
-
-export const AVAILABLE_CATEGORIES = [
-  { name: "Rings", slug: "rings" },
-  { name: "Earrings", slug: "earrings" },
-  { name: "Bangles & Bracelets", slug: "bangles-bracelets" },
-  { name: "Solitaire", slug: "solitaire" },
-  { name: "Mangalsutra", slug: "mangalsutra" },
-];
 
 export const PRICE_RANGES = [
   { label: "Under ₹10,000", id: "under-10k", min: 0, max: 10000 },
@@ -36,10 +29,13 @@ export function useCategoryFilters() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categorySlug = (params.category as string) || "all";
+  const categoryId = (params.id as string) || "";
 
-  // Fetch live products
-  const { data: dbProducts, isLoading } = useProductsList();
+  // Fetch category details
+  const { data: categoryDetail } = useCategoryDetails(categoryId);
+  
+  // Fetch live products for this category ID
+  const { data: dbProducts, isLoading } = useProductsByCategory(categoryId);
   const products = useMemo(() => {
     return (dbProducts || []) as CompatibleProduct[];
   }, [dbProducts]);
@@ -49,33 +45,18 @@ export function useCategoryFilters() {
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [selectedMetals, setSelectedMetals] = useState<string[]>([]);
   const [selectedWeightRanges, setSelectedWeightRanges] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedPurities, setSelectedPurities] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("popular");
   const [isNewArrivals, setIsNewArrivals] = useState<boolean>(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // Sync state with URL search parameters on mount/update
+  // Sync state with URL search parameters
   useEffect(() => {
     const metalParam = searchParams.get("metal");
     setSelectedMetals(metalParam ? metalParam.split(",") : []);
 
     const purityParam = searchParams.get("purity");
     setSelectedPurities(purityParam ? purityParam.split(",") : []);
-
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const parsed = categoryParam.split(",").map((cat) => {
-        const c = cat.toLowerCase();
-        const matched = AVAILABLE_CATEGORIES.find(
-          (ac) => ac.slug === c || ac.slug === c + "s" || c === ac.slug + "s"
-        );
-        return matched ? matched.slug : c;
-      });
-      setSelectedCategories(parsed);
-    } else {
-      setSelectedCategories([]);
-    }
 
     const priceParam = searchParams.get("priceRange");
     setSelectedPriceRanges(priceParam ? priceParam.split(",") : []);
@@ -103,7 +84,6 @@ export function useCategoryFilters() {
       selectedGenders.length +
       selectedMetals.length +
       selectedWeightRanges.length +
-      selectedCategories.length +
       selectedPurities.length +
       (isNewArrivals ? 1 : 0)
     );
@@ -112,56 +92,19 @@ export function useCategoryFilters() {
     selectedGenders,
     selectedMetals,
     selectedWeightRanges,
-    selectedCategories,
     selectedPurities,
     isNewArrivals,
   ]);
 
-  // Get display name for category
   const categoryName = useMemo(() => {
-    if (categorySlug === "all") {
-      if (selectedCategories.length > 0) {
-        return selectedCategories
-          .map((cat) => {
-            const matched = AVAILABLE_CATEGORIES.find(
-              (c) => c.slug === cat || c.slug === cat + "s" || cat === c.slug + "s"
-            );
-            return matched ? matched.name : cat.charAt(0).toUpperCase() + cat.slice(1);
-          })
-          .join(", ");
-      }
-      if (isNewArrivals) {
-        return "New Arrivals";
-      }
-      return "All Jewellery";
-    }
+    if (!categoryDetail) return "Loading Category...";
+    return categoryDetail.category_name || categoryDetail.name || "Category Products";
+  }, [categoryDetail]);
 
-    switch (categorySlug) {
-      case "all":
-        return "All Jewellery";
-      case "gold":
-        return "Gold Jewellery";
-      case "silver":
-        return "Silver Jewellery";
-      case "platinum":
-        return "Platinum Jewellery";
-      case "bangles-bracelets":
-        return "Bangles & Bracelets";
-      case "necklaces-pendants":
-        return "Necklaces & Pendants";
-      case "new-arrivals":
-      case "latest-arrivals":
-        return "New Arrivals";
-      default:
-        return categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
-    }
-  }, [categorySlug, selectedCategories, isNewArrivals]);
-
-  // Helper to update query string in router
+  // Helper to update query string
   const updateUrl = (
     metals: string[],
     purities: string[],
-    categoriesList: string[],
     prices: string[],
     weights: string[],
     gendersList: string[],
@@ -172,7 +115,6 @@ export function useCategoryFilters() {
     
     if (metals.length > 0) nextParams.set("metal", metals.join(","));
     if (purities.length > 0) nextParams.set("purity", purities.join(","));
-    if (categoriesList.length > 0) nextParams.set("category", categoriesList.join(","));
     if (prices.length > 0) nextParams.set("priceRange", prices.join(","));
     if (weights.length > 0) nextParams.set("weightRange", weights.join(","));
     if (gendersList.length > 0) nextParams.set("gender", gendersList.join(","));
@@ -180,54 +122,26 @@ export function useCategoryFilters() {
     if (newArrivalsOnly) nextParams.set("newarrivals", "true");
     
     const queryString = nextParams.toString();
-    router.replace(`/${categorySlug}${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    router.replace(`/category/${categoryId}${queryString ? `?${queryString}` : ""}`, { scroll: false });
   };
 
   // Filter and Sort Logic
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    // 1. Category Slug Filter
-    if (categorySlug === "gold") {
-      result = result.filter((p) => (p.metal || "") === "gold");
-    } else if (categorySlug === "silver") {
-      result = result.filter((p) => (p.metal || "") === "silver");
-    } else if (categorySlug === "platinum") {
-      result = result.filter((p) => (p.metal || "") === "platinum");
-    } else if (categorySlug === "new-arrivals" || categorySlug === "latest-arrivals") {
-      result = [...products].reverse();
-    } else if (categorySlug !== "all") {
-      result = result.filter((p) => {
-        const pc = (p.category || "").toLowerCase();
-        const sc = categorySlug.toLowerCase();
-        return pc === sc || pc === sc + "s" || sc === pc + "s" || pc.includes(sc);
-      });
-    }
-
-    // 2. Sidebar/Query Metal Filter
+    // 1. Sidebar/Query Metal Filter
     if (selectedMetals.length > 0) {
       result = result.filter((p) => selectedMetals.includes(p.metal || ""));
     }
 
-    // 3. Sidebar/Query Purity Filter
+    // 2. Sidebar/Query Purity Filter
     if (selectedPurities.length > 0) {
       result = result.filter((p) =>
         selectedPurities.some((purity) => (p.purity || "").toLowerCase().includes(purity.toLowerCase()))
       );
     }
 
-    // 4. Sidebar/Query Category Filter
-    if (selectedCategories.length > 0) {
-      result = result.filter((p) => {
-        return selectedCategories.some((cat) => {
-          const pc = (p.category || "").toLowerCase();
-          const c = cat.toLowerCase();
-          return pc === c || pc === c + "s" || c === pc + "s" || pc.includes(c);
-        });
-      });
-    }
-
-    // 5. Checkbox Price Range Filter
+    // 3. Checkbox Price Range Filter
     if (selectedPriceRanges.length > 0) {
       result = result.filter((p) => {
         return selectedPriceRanges.some((rangeId) => {
@@ -239,7 +153,7 @@ export function useCategoryFilters() {
       });
     }
 
-    // 6. Checkbox Weight Range Filter
+    // 4. Checkbox Weight Range Filter
     if (selectedWeightRanges.length > 0) {
       result = result.filter((p) => {
         return selectedWeightRanges.some((rangeId) => {
@@ -251,12 +165,11 @@ export function useCategoryFilters() {
       });
     }
 
-    // 7. Checkbox Shop For (Gender) Filter
+    // 5. Checkbox Shop For (Gender) Filter
     if (selectedGenders.length > 0) {
       result = result.filter((p) => {
         return selectedGenders.some((genderId) => {
           const nameLower = (p.product_name || p.name || "").toLowerCase();
-          const descLower = (p.description || "").toLowerCase();
           if (genderId === "kids") {
             return nameLower.includes("kids") || nameLower.includes("baby") || nameLower.includes("stud");
           }
@@ -271,12 +184,12 @@ export function useCategoryFilters() {
       });
     }
 
-    // 8. Query New Arrivals Filter
+    // 6. Query New Arrivals Filter
     if (isNewArrivals) {
       result = [...result].reverse();
     }
 
-    // 9. Sorting
+    // 7. Sorting
     if (sortBy === "price-asc" || sortBy === "low-to-high") {
       result.sort((a, b) => (a.price || a.totalprice || 0) - (b.price || b.totalprice || 0));
     } else if (sortBy === "price-desc" || sortBy === "high-to-low") {
@@ -288,10 +201,8 @@ export function useCategoryFilters() {
     return result;
   }, [
     products,
-    categorySlug,
     selectedMetals,
     selectedPurities,
-    selectedCategories,
     selectedPriceRanges,
     selectedWeightRanges,
     selectedGenders,
@@ -307,7 +218,6 @@ export function useCategoryFilters() {
     updateUrl(
       next,
       selectedPurities,
-      selectedCategories,
       selectedPriceRanges,
       selectedWeightRanges,
       selectedGenders,
@@ -323,24 +233,6 @@ export function useCategoryFilters() {
     setSelectedPurities(next);
     updateUrl(
       selectedMetals,
-      next,
-      selectedCategories,
-      selectedPriceRanges,
-      selectedWeightRanges,
-      selectedGenders,
-      sortBy,
-      isNewArrivals
-    );
-  };
-
-  const toggleCategory = (catSlug: string) => {
-    const next = selectedCategories.includes(catSlug)
-      ? selectedCategories.filter((c) => c !== catSlug)
-      : [...selectedCategories, catSlug];
-    setSelectedCategories(next);
-    updateUrl(
-      selectedMetals,
-      selectedPurities,
       next,
       selectedPriceRanges,
       selectedWeightRanges,
@@ -358,7 +250,6 @@ export function useCategoryFilters() {
     updateUrl(
       selectedMetals,
       selectedPurities,
-      selectedCategories,
       next,
       selectedWeightRanges,
       selectedGenders,
@@ -375,7 +266,6 @@ export function useCategoryFilters() {
     updateUrl(
       selectedMetals,
       selectedPurities,
-      selectedCategories,
       selectedPriceRanges,
       next,
       selectedGenders,
@@ -392,7 +282,6 @@ export function useCategoryFilters() {
     updateUrl(
       selectedMetals,
       selectedPurities,
-      selectedCategories,
       selectedPriceRanges,
       selectedWeightRanges,
       next,
@@ -407,7 +296,6 @@ export function useCategoryFilters() {
     updateUrl(
       selectedMetals,
       selectedPurities,
-      selectedCategories,
       selectedPriceRanges,
       selectedWeightRanges,
       selectedGenders,
@@ -421,7 +309,6 @@ export function useCategoryFilters() {
     updateUrl(
       selectedMetals,
       selectedPurities,
-      selectedCategories,
       selectedPriceRanges,
       selectedWeightRanges,
       selectedGenders,
@@ -433,21 +320,19 @@ export function useCategoryFilters() {
   const resetFilters = () => {
     setSelectedMetals([]);
     setSelectedPurities([]);
-    setSelectedCategories([]);
     setSelectedPriceRanges([]);
     setSelectedWeightRanges([]);
     setSelectedGenders([]);
     setSortBy("popular");
     setIsNewArrivals(false);
-    router.replace(`/${categorySlug}`, { scroll: false });
+    router.replace(`/category/${categoryId}`, { scroll: false });
   };
 
   return {
-    categorySlug,
+    categoryId,
     categoryName,
     selectedMetals,
     selectedPurities,
-    selectedCategories,
     selectedPriceRanges,
     selectedWeightRanges,
     selectedGenders,
@@ -459,12 +344,12 @@ export function useCategoryFilters() {
     activeFiltersCount,
     toggleMetal,
     togglePurity,
-    toggleCategory,
     togglePriceRange,
     toggleWeightRange,
     toggleGender,
     toggleNewArrivals,
     handleSortChange,
     resetFilters,
+    isLoading,
   };
 }

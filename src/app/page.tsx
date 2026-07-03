@@ -1,17 +1,21 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { products } from "@/data/products";
-import ProductCard from "@/components/common/ProductCard";
-import CategoryCard from "@/components/common/CategoryCard";
+import ProductCard, { CompatibleProduct } from "@/components/common/ProductCard";
+import CategoryCard, { CompatibleCategory } from "@/components/common/CategoryCard";
 import CardSlider from "@/components/common/CardSlider";
 import HeroSlider from "@/components/common/HeroSlider";
+import SchemesSlider from "@/components/common/SchemesSlider";
 import { motion } from "framer-motion";
+import { useActiveCategories } from "@/lib/hooks/useCategory";
+import { useProductsList } from "@/lib/hooks/useProducts";
 
 const heroImages = [
-  { src: "/images/hero_banner.svg", alt: "Timeless Beauty Hero Banner" },
+  { src: "https://aupay-img.s3.eu-north-1.amazonaws.com/kavithajewellers_new/webadmin/assets/banners/1783059366165.png", alt: "Timeless Beauty Hero Banner" },
   { src: "/images/banner_2.png", alt: "Special Offer Banner" },
+  { src: "https://aupay-cdn.aupay.auss.co/kavitha-testing/image.png", alt: "Special Offer" },
+  { src: "/images/banner_4.png", alt: "Special " },
 ];
 
 const getResponsiveCardClass = (index: number) => {
@@ -22,26 +26,35 @@ const getResponsiveCardClass = (index: number) => {
 };
 
 export default function Home() {
-  const categories = [
-    { name: "Rings", image: "/images/categories/rings.png" },
-    { name: "Earrings", image: "/images/categories/earrings.png" },
-    { name: "Necklaces & Pendants", image: "/images/categories/necklaces.png" },
-    { name: "Bangles and Bracelets", image: "/images/categories/bangles.png" },
-    { name: "Solitaire", image: "/images/categories/solitaire.png" },
-    { name: "Mangalsutra", image: "/images/categories/mangalsutra.png" },
-    { name: "Gold Coins", image: "/images/categories/solitaire.png" },
-    { name: "Nose Pins", image: "/images/categories/rings.png" },
-    { name: "Chains", image: "/images/categories/necklaces.png" },
-    { name: "Bracelets", image: "/images/categories/bangles.png" },
-  ];
+  const { data: dbCategories, isLoading: categoriesLoading } = useActiveCategories();
+  const { data: dbProducts, isLoading: productsLoading } = useProductsList();
 
+  if (categoriesLoading || productsLoading) {
+    return (
+      <div className="w-full min-h-[60vh] flex items-center justify-center bg-bg-custom">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-[10px] uppercase font-bold tracking-widest text-subtitle animate-pulse">Loading Collection...</span>
+        </div>
+      </div>
+    );
+  }
 
+  // Resolve dynamic categories
+  const categoriesToRender: CompatibleCategory[] = (dbCategories && dbCategories.length > 0
+    ? dbCategories
+    : []) as CompatibleCategory[];
+
+  // Resolve dynamic products
+  const allProducts: CompatibleProduct[] = (dbProducts || []) as CompatibleProduct[];
 
   // Latest Arrivals (10 products)
-  const latestArrivals = products.slice(0, 10);
+  const latestArrivals = allProducts.slice(0, 10);
 
   // Bestsellers (5 products)
-  const bestSellers = products.slice(3, 8);
+  const bestSellers = allProducts.filter((p: CompatibleProduct) => p.bestSeller).length > 0
+    ? allProducts.filter((p: CompatibleProduct) => p.bestSeller).slice(0, 8)
+    : allProducts.slice(3, 8);
 
   return (
     <div className="w-full flex flex-col relative">
@@ -56,9 +69,9 @@ export default function Home() {
         title="Shop By Category"
         subtitle="Crafting elegance that transcends generations"
       >
-        {categories.map((category, index) => (
+        {categoriesToRender.map((category: CompatibleCategory, index: number) => (
           <CategoryCard
-            key={category.name}
+            key={category._id}
             category={category}
             index={index}
             className="w-[140px] sm:w-[160px] md:w-[160px] shrink-0 snap-start"
@@ -83,7 +96,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
           {latestArrivals.map((product, index) => (
             <ProductCard
-              key={product.id}
+              key={product._id || product.id || index}
               product={product}
               index={index}
               className={getResponsiveCardClass(index)}
@@ -107,7 +120,7 @@ export default function Home() {
       >
         {bestSellers.map((product, index) => (
           <ProductCard
-            key={product.id}
+            key={product._id || product.id || index}
             product={product}
             index={index}
             className="w-[160px] sm:w-[190px] md:w-[230px] lg:w-[250px] py-2"
@@ -116,34 +129,7 @@ export default function Home() {
       </CardSlider>
 
       {/* 5. Join Our Schemes */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 w-full py-8 relative flex flex-col gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center w-full"
-        >
-          <h2 className="font-sans text-xl md:text-2xl font-bold text-title">Join Our Schemes</h2>
-        </motion.div>
-
-        {/* Banner Frame */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative w-full overflow-hidden rounded-2xl border border-neutral-100/50 shadow-xs bg-[#FFFCFC]"
-          style={{ aspectRatio: "1512/512" }}
-        >
-          <Image
-            src="/images/scheme_banner.svg"
-            alt="Join Our Schemes Banner"
-            fill
-            className="object-contain object-center"
-          />
-        </motion.div>
-      </section>
+      <SchemesSlider />
 
     </div>
   );

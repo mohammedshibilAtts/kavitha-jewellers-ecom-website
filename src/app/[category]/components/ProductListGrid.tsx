@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import ProductCard from "@/components/common/ProductCard";
-import { Product } from "@/data/products";
+import ProductCard, { CompatibleProduct } from "@/components/common/ProductCard";
 
 interface ProductListGridProps {
-  products: Product[];
+  products: CompatibleProduct[];
   resetFilters: () => void;
 }
 
 export default function ProductListGrid({ products, resetFilters }: ProductListGridProps) {
   // Batch size: 12 items represent 3 rows in 4-column layout, 4 rows in 3-column layout
-  const BATCH_SIZE = 12;
+  const BATCH_SIZE = 1200;
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +66,7 @@ export default function ProductListGrid({ products, resetFilters }: ProductListG
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {visibleProducts.map((product, index) => (
-          <ProductCard key={product.id} product={product} index={index} />
+          <ProductCard key={product._id || product.id || index} product={product} index={index} />
         ))}
       </div>
 

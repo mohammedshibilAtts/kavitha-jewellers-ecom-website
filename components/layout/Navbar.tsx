@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ShoppingBag } from "lucide-react";
+import { useActiveCategories } from "@/lib/hooks/useCategory";
+import { usePathname } from "next/navigation";
+import { encodeId } from "@/lib/utils/obfuscate";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,18 +33,17 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
+  const { data: dbCategories } = useActiveCategories();
+  const pathname = usePathname();
+
+  const activeDbCats = dbCategories || [];
   const categories = [
-    { name: "All Jewellery", href: "/all", active: true },
-    { name: "Gold Jewellery", href: "/gold" },
-    { name: "Silver Jewellery", href: "/silver" },
-    { name: "Rings", href: "/rings" },
-    { name: "Earrings", href: "/earrings" },
-    { name: "Bangles & Bracelets", href: "/bangles-bracelets" },
-    { name: "Solitaire", href: "/solitaire" },
-    { name: "Mangalsutra", href: "/mangalsutra" },
-    { name: "Gifts", href: "/gift" },
-    { name: "Schemes", href: "/schemes" },
-    
+    { name: "All Jewellery", href: "/all" },
+    ...activeDbCats.slice(0, 8).map((cat) => ({
+      name: cat.category_name,
+      href: `/category/${encodeId(cat._id)}`
+    })),
+    { name: "Schemes", href: "/chit/schemes" }
   ];
 
   return (
@@ -210,7 +212,7 @@ export default function Navbar() {
                 <li key={category.name}>
                   <Link
                     href={category.href}
-                    className={`relative py-1.5 transition-colors uppercase hover:text-primary ${category.active
+                    className={`relative py-1.5 transition-colors uppercase hover:text-primary ${pathname === category.href
                         ? "text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-full"
                         : "text-[#313130] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-full after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
                       }`}
@@ -277,7 +279,7 @@ export default function Navbar() {
                     <Link
                       href={category.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-200 ${category.active
+                      className={`flex items-center justify-between py-2.5 px-3 rounded-lg text-xs font-semibold tracking-wider transition-all duration-200 ${pathname === category.href
                           ? "text-primary bg-primary/5 font-bold"
                           : "text-neutral-700 hover:text-primary hover:bg-neutral-50"
                         }`}
@@ -285,7 +287,7 @@ export default function Navbar() {
                       <span>{category.name}</span>
                       <ChevronRight
                         size={14}
-                        className={`transition-transform duration-200 ${category.active ? "text-primary translate-x-0.5" : "text-neutral-300"}`}
+                        className={`transition-transform duration-200 ${pathname === category.href ? "text-primary translate-x-0.5" : "text-neutral-300"}`}
                       />
                     </Link>
                   </li>

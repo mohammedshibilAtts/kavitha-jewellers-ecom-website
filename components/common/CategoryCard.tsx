@@ -5,18 +5,31 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+export interface CompatibleCategory {
+  _id: string;
+  name?: string;
+  category_name?: string;
+  image?: string;
+  categoryBanner?: string;
+  isActive?: boolean;
+  pathurl?: string
+}
+
 interface CategoryCardProps {
-  category: {
-    name: string;
-    image: string;
-  };
+  category: CompatibleCategory;
   className?: string;
   index?: number;
 }
 
+import { encodeId } from "@/lib/utils/obfuscate";
+
 export default function CategoryCard({ category, className = "", index = 0 }: CategoryCardProps) {
+  const name = category.name || category.category_name || "Category";
+  const pathurl = category.pathurl || "";
+  const imageSrc = category.image ? `${pathurl}${category.image}` : "/images/placeholder.png";
+
   // Generate category slug automatically: e.g. "Necklaces & Pendants" -> "necklaces-pendants"
-  const slug = category.name
+  const slug = name
     .toLowerCase()
     .replace(/ & /g, "-")
     .replace(/ and /g, "-")
@@ -38,14 +51,14 @@ export default function CategoryCard({ category, className = "", index = 0 }: Ca
       className={className}
     >
       <Link
-        href={`/${slug}`}
+        href={`/category/${encodeId(category._id)}`}
         className="group flex flex-col items-center gap-2 cursor-pointer w-full"
       >
         {/* Category Image Box */}
         <div className="w-full aspect-square rounded-2xl  relative ">
           <Image
-            src={category.image}
-            alt={category.name}
+            src={imageSrc}
+            alt={name}
             fill
             className="object-contain p-4 rounded-3xl transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 15vw"
@@ -54,7 +67,7 @@ export default function CategoryCard({ category, className = "", index = 0 }: Ca
 
         {/* Category Name */}
         <span className="font-semibold text-center text-[11px] md:text-xs text-neutral-800 group-hover:text-primary transition-colors leading-tight uppercase tracking-wider">
-          {category.name}
+          {name}
         </span>
       </Link>
     </motion.div>

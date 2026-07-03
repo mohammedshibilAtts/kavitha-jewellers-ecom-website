@@ -34,7 +34,7 @@ const slideVariants = {
 export default function HeroSlider({
   images,
   autoplayInterval = 5000,
-  aspectRatio = "1352/646",
+  aspectRatio = "2/1",
   className = "",
 }: HeroSliderProps) {
   const [[page, direction], setPage] = useState([0, 0]);
@@ -99,7 +99,7 @@ export default function HeroSlider({
             alt={images[currentIndex].alt}
             fill
             priority={currentIndex === 0}
-            className="object-contain object-center pointer-events-none"
+            className="object-cover object-center pointer-events-none"
           />
         </motion.div>
       </AnimatePresence>

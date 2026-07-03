@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/layout/Footer";
+import QueryProvider from "@/providers/QueryProvider";
 
 export default function RootLayout({
   children,
@@ -28,11 +29,13 @@ export default function RootLayout({
       className={`${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg-custom  text-normal font-sans">
-        <Navbar />
-        <main className="flex-1 pt-[96px]  md:pt-[134px] flex flex-col relative">
-          {children}
-        </main>
-        <Footer />
+        <QueryProvider>
+          <Navbar />
+          <main className="flex-1 pt-[96px]  md:pt-[134px] flex flex-col relative">
+            {children}
+          </main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );
